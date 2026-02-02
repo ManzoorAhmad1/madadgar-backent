@@ -830,4 +830,4 @@ startServer();
 // });
 
 // Export app for Hostinger/Passenger
-export default app;
+// export default app;
