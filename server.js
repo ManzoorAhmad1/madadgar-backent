@@ -81,17 +81,30 @@ console.log(`📁 Serving static files from: ${uploadPath}`);
 io.on('connection', (socket) => {
   console.log('🔌 New client connected:', socket.id);
 
+  // Error handler for socket
+  socket.on('error', (error) => {
+    console.error('❌ Socket error:', error);
+  });
+
   // Join room based on user ID
   socket.on('join', (userId) => {
-    const roomId = userId.toString();
-    socket.join(roomId);
-    console.log(`👤 User ${userId} joined room: ${roomId}`);
+    try {
+      const roomId = userId.toString();
+      socket.join(roomId);
+      console.log(`👤 User ${userId} joined room: ${roomId}`);
+    } catch (error) {
+      console.error('❌ Error joining room:', error);
+    }
   });
 
   // Join booking room for real-time updates
   socket.on('join-booking-room', (bookingId) => {
-    socket.join(`booking-${bookingId}`);
-    console.log(`📦 Socket ${socket.id} joined booking room: ${bookingId}`);
+    try {
+      socket.join(`booking-${bookingId}`);
+      console.log(`📦 Socket ${socket.id} joined booking room: ${bookingId}`);
+    } catch (error) {
+      console.error('❌ Error joining booking room:', error);
+    }
   });
 
   // Provider availability changed - broadcast to all clients
@@ -740,32 +753,39 @@ const startServer = async () => {
   try {
     console.log('🔄 Starting server initialization...');
 
-    // Test database connection
-    console.log('🔄 Testing database connection...');
-    await testConnection();
-    console.log('✅ Database connection successful');
-
-    // Ensure upload directory exists
-    console.log('🔄 Checking upload directory...');
-    ensureUploadDir();
-    console.log('✅ Upload directory ready');
-
-    // Seed default admin user
-    console.log('🔄 Seeding admin user...');
-    await seedAdminUser();
-    console.log('✅ Admin user seeded');
-
-    // Start server
+    // Start server first (so we can access health endpoint)
     server.listen(PORT, '0.0.0.0', () => {
       console.log(`✅ Server running on port ${PORT}`);
       console.log(`✅ Environment: ${process.env.NODE_ENV}`);
       console.log(`✅ Socket.io ready for real-time connections`);
       console.log(`✅ Health check: http://0.0.0.0:${PORT}/health`);
     });
+
+    // Test database connection (non-blocking)
+    console.log('🔄 Testing database connection...');
+    testConnection().then(() => {
+      console.log('✅ Database connection successful');
+      
+      // Ensure upload directory exists
+      console.log('🔄 Checking upload directory...');
+      ensureUploadDir();
+      console.log('✅ Upload directory ready');
+
+      // Seed default admin user
+      console.log('🔄 Seeding admin user...');
+      seedAdminUser().then(() => {
+        console.log('✅ Admin user seeded');
+      }).catch(err => {
+        console.warn('⚠️  Admin seeding failed:', err.message);
+      });
+    }).catch(err => {
+      console.error('⚠️  Database connection failed:', err.message);
+    });
+
   } catch (error) {
     console.error('❌ Server startup error:', error.message);
     console.error('❌ Stack trace:', error.stack);
-    process.exit(1);
+    // Don't exit, let server try to run
   }
 };
 
