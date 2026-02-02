@@ -1,48 +1,51 @@
 {
-  "name": "madadgar-backend",
+  "name": "laundry-backend",
   "version": "1.0.0",
-  "description": "ServiceHub/Madadgar Backend API",
-  "main": "server.js",
+  "description": "backend for laundry app",
   "type": "module",
-  "engines": {
-    "node": ">=18.0.0"
-  },
+  "main": "server.js",
   "scripts": {
+    "maildev": "maildev -o",
     "start": "node server.js",
     "dev": "nodemon server.js",
     "start:local": "nodemon -r dotenv/config ./server.js dotenv_config_path=.env",
-    "build": "echo 'Build completed - Node.js backend ready'"
+    "build": "echo 'No build step required for Node.js backend'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@gitlab.com-personal:asadbukhari9895/laundry-backend.git"
   },
   "keywords": [
-    "service-marketplace",
-    "booking",
+    "node",
     "express",
-    "mysql"
+    "mongodb"
   ],
-  "author": "",
+  "author": "Asad Bukhari",
   "license": "ISC",
-  "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "cloudinary": "^2.5.1",
-    "compression": "^1.7.5",
-    "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
-    "express": "^4.21.2",
-    "express-rate-limit": "^7.4.1",
-    "express-validator": "^7.2.1",
-    "helmet": "^8.0.0",
-    "jimp": "^0.22.10",
-    "joi": "^17.13.0",
-    "jsonwebtoken": "^9.0.2",
-    "morgan": "^1.10.0",
-    "multer": "^2.0.2",
-    "mysql2": "^3.11.5",
-    "nodemailer": "^7.0.13",
-    "socket.io": "^4.8.3",
-    "tesseract.js": "^4.1.1",
-    "twilio": "^5.2.4"
-  },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "maildev": "^2.0.5",
+    "nodemon": "^3.0.1"
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^7.7.0",
+    "bcryptjs": "^2.4.3",
+    "chalk": "^5.3.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-group-routes": "^1.1.0",
+    "express-useragent": "^1.0.15",
+    "firebase-admin": "^11.10.1",
+    "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.1",
+    "jwt-decode": "^3.1.2",
+    "moment": "^2.29.4",
+    "mongodb": "^6.3.0",
+    "mongoose": "^7.6.8",
+    "mongoose-unique-validator": "^4.0.0",
+    "morgan": "^1.10.0",
+    "node-emv": "^1.0.22",
+    "nodemailer": "^6.9.4",
+    "stripe": "^13.4.0"
   }
 }

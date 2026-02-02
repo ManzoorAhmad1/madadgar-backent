@@ -771,46 +771,53 @@ const app = express();
 // Start server
 const PORT = process.env.PORT || 8080;
 
-const startServer = async () => {
-  try {
-    console.log('🔄 Starting server initialization...');
+// const startServer = async () => {
+//   try {
+//     console.log('🔄 Starting server initialization...');
 
-    // Check if running on Passenger (Hostinger)
-    const isPassenger = typeof (PhusionPassenger) !== 'undefined';
+//     // Check if running on Passenger (Hostinger)
+//     const isPassenger = typeof (PhusionPassenger) !== 'undefined';
 
-    if (isPassenger) {
-    } else {
-      // Start server normally (development)
-      app.listen(PORT ?? 8000, () => {
-        console.log(`✅ Server running on port ${PORT}`);
-        console.log(`✅ Environment: ${process.env.NODE_ENV}`);
-      });
-    }
+//     if (isPassenger) {
+//     } else {
+//       // Start server normally (development)
+//       app.listen(PORT ?? 8000, () => {
+//         console.log(`✅ Server running on port ${PORT}`);
+//         console.log(`✅ Environment: ${process.env.NODE_ENV}`);
+//       });
+//     }
 
-    testConnection().then(() => {
+//     testConnection().then(() => {
 
-      // Ensure upload directory exists
-      try {
-        ensureUploadDir();
-      } catch (err) {
-        console.warn('⚠️  Upload directory setup failed:', err.message);
-      }
+//       // Ensure upload directory exists
+//       try {
+//         ensureUploadDir();
+//       } catch (err) {
+//         console.warn('⚠️  Upload directory setup failed:', err.message);
+//       }
 
-      seedAdminUser().then(() => {
-        console.log('✅ Admin user seeded');
-      }).catch(err => {
-        console.warn('⚠️  Admin seeding failed:', err.message);
-      });
-    }).catch(err => {
-      console.error('⚠️  Database connection failed:', err.message);
-    });
+//       seedAdminUser().then(() => {
+//         console.log('✅ Admin user seeded');
+//       }).catch(err => {
+//         console.warn('⚠️  Admin seeding failed:', err.message);
+//       });
+//     }).catch(err => {
+//       console.error('⚠️  Database connection failed:', err.message);
+//     });
 
-  } catch (error) {
-    console.error('❌ Server startup error:', error.message);
-    // Don't exit, let server try to run
-  }
-};
+//   } catch (error) {
+//     console.error('❌ Server startup error:', error.message);
+//     // Don't exit, let server try to run
+//   }
+// };
+app.listen(8000, () => {
+  const serverMessage = `Server started on port ${PORT}`;
+  const separator = '-'.repeat(serverMessage.length);
 
+  console.log(`${blueBg}${separator}${reset}`);
+  console.log(`${greenBg}${serverMessage}${reset}`);
+  console.log(`${blueBg}${separator}${reset}`);
+});
 // یہ بھی شامل کریں
 app.get('/health', (req, res) => {
   res.status(200).json({
