@@ -43,17 +43,26 @@ const server = createServer(app);
 // This fixes the X-Forwarded-For header error
 app.set('trust proxy', 1);
 
-// Initialize Socket.io
-const io = new Server(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST'],
-    credentials: true,
-  },
-});
+// Initialize Socket.io (only if not on Passenger/Hostinger)
+const isPassenger = typeof(PhusionPassenger) !== 'undefined';
+let io;
 
-// Make io accessible to our router
-app.set('io', io);
+if (!isPassenger) {
+  io = new Server(server, {
+    cors: {
+      origin: '*',
+      methods: ['GET', 'POST'],
+      credentials: true,
+    },
+  });
+  // Make io accessible to our router
+  app.set('io', io);
+  console.log('✅ Socket.io initialized');
+} else {
+  console.log('⚠️  Socket.io disabled on Passenger/Hostinger');
+  // Provide dummy io for routes that might use it
+  app.set('io', null);
+}
 
 // Middleware
 app.use(
@@ -62,9 +71,15 @@ app.use(
     credentials: true,
   })
 );
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}));
 app.use(compression());
-app.use(morgan('dev'));
+// Only use morgan in development
+if (process.env.NODE_ENV !== 'production') {
+  app.use(morgan('dev'));
+}
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -77,25 +92,26 @@ console.log(`📁 Serving static files from: ${uploadPath}`);
 // Apply rate limiting
 // app.use('/api/', rateLimiter);
 
-// Socket.io Connection Handler
-io.on('connection', (socket) => {
-  console.log('🔌 New client connected:', socket.id);
+// Socket.io Connection Handler (only if Socket.io is initialized)
+if (io) {
+  io.on('connection', (socket) => {
+    console.log('🔌 New client connected:', socket.id);
 
-  // Error handler for socket
-  socket.on('error', (error) => {
-    console.error('❌ Socket error:', error);
-  });
+    // Error handler for socket
+    socket.on('error', (error) => {
+      console.error('❌ Socket error:', error);
+    });
 
-  // Join room based on user ID
-  socket.on('join', (userId) => {
-    try {
-      const roomId = userId.toString();
-      socket.join(roomId);
-      console.log(`👤 User ${userId} joined room: ${roomId}`);
-    } catch (error) {
-      console.error('❌ Error joining room:', error);
-    }
-  });
+    // Join room based on user ID
+    socket.on('join', (userId) => {
+      try {
+        const roomId = userId.toString();
+        socket.join(roomId);
+        console.log(`👤 User ${userId} joined room: ${roomId}`);
+      } catch (error) {
+        console.error('❌ Error joining room:', error);
+      }
+    });
 
   // Join booking room for real-time updates
   socket.on('join-booking-room', (bookingId) => {
@@ -692,7 +708,10 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('🔌 Client disconnected:', socket.id);
   });
-});
+  });
+} else {
+  console.log('⚠️  Socket.io handlers skipped (running on Passenger)');
+}
 
 // API Routes
 app.use('/api', apiRoutes);
@@ -753,13 +772,21 @@ const startServer = async () => {
   try {
     console.log('🔄 Starting server initialization...');
 
-    // Start server first (so we can access health endpoint)
-    server.listen(PORT, '0.0.0.0', () => {
-      console.log(`✅ Server running on port ${PORT}`);
-      console.log(`✅ Environment: ${process.env.NODE_ENV}`);
-      console.log(`✅ Socket.io ready for real-time connections`);
-      console.log(`✅ Health check: http://0.0.0.0:${PORT}/health`);
-    });
+    // Check if running on Passenger (Hostinger)
+    const isPassenger = typeof(PhusionPassenger) !== 'undefined';
+    
+    if (isPassenger) {
+      console.log('🚀 Running on Passenger (Hostinger)');
+      console.log(`✅ Server ready on Passenger`);
+    } else {
+      // Start server normally (development)
+      server.listen(PORT, '0.0.0.0', () => {
+        console.log(`✅ Server running on port ${PORT}`);
+        console.log(`✅ Environment: ${process.env.NODE_ENV}`);
+        console.log(`✅ Socket.io ready for real-time connections`);
+        console.log(`✅ Health check: http://0.0.0.0:${PORT}/health`);
+      });
+    }
 
     // Test database connection (non-blocking)
     console.log('🔄 Testing database connection...');
@@ -768,8 +795,12 @@ const startServer = async () => {
       
       // Ensure upload directory exists
       console.log('🔄 Checking upload directory...');
-      ensureUploadDir();
-      console.log('✅ Upload directory ready');
+      try {
+        ensureUploadDir();
+        console.log('✅ Upload directory ready');
+      } catch (err) {
+        console.warn('⚠️  Upload directory setup failed:', err.message);
+      }
 
       // Seed default admin user
       console.log('🔄 Seeding admin user...');
