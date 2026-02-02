@@ -99,12 +99,12 @@ app.use(errorHandler);
 
 // Initialize server
 const PORT = process.env.PORT || 8080;
-const isProduction = process.env.NODE_ENV === 'production';
 
 const initializeServer = async () => {
   try {
     console.log('🚀 Initializing Madadgar API Server...');
     console.log(`📍 Environment: ${process.env.NODE_ENV}`);
+    console.log(`📍 Port: ${PORT}`);
 
     // Test database connection
     try {
@@ -130,15 +130,12 @@ const initializeServer = async () => {
       console.warn('⚠️  Admin seeding failed:', error.message);
     }
 
-    // Start server (only in development, Hostinger/Passenger handles it in production)
-    if (!isProduction) {
-      app.listen(PORT, '0.0.0.0', () => {
-        console.log(`✅ Server running on http://0.0.0.0:${PORT}`);
-        console.log(`✅ Health check: http://0.0.0.0:${PORT}/health`);
-      });
-    } else {
-      console.log('✅ Server initialized for production (Passenger/Hostinger)');
-    }
+    // Always start the server - Passenger will manage the port
+    app.listen(PORT, () => {
+      console.log(`✅ Server running on port ${PORT}`);
+      console.log(`✅ Environment: ${process.env.NODE_ENV}`);
+      console.log(`✅ Health check available at /health`);
+    });
 
   } catch (error) {
     console.error('❌ Initialization error:', error);
@@ -157,5 +154,5 @@ process.on('uncaughtException', (err) => {
   console.error('❌ Uncaught Exception:', err);
 });
 
-// Export app for Passenger/Hostinger
+// For ES modules compatibility
 export default app;
