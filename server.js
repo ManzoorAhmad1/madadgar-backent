@@ -1,18 +1,34 @@
 import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+app.use(cors());
+app.use(express.json());
+
 app.get('/', (req, res) => {
-  res.json({ status: 'ok', message: 'Test server running' });
+  res.json({ 
+    status: 'success',
+    message: 'Madadgar API Server',
+    timestamp: new Date().toISOString()
+  });
 });
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'healthy' });
+  res.json({ 
+    status: 'healthy',
+    port: PORT,
+    node: process.version,
+    env: process.env.NODE_ENV
+  });
 });
 
-app.listen(PORT, () => {
-  console.log(`Test server on port ${PORT}`);
+const server = app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
 });
 
 export default app;
