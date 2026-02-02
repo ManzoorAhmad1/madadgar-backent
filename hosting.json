@@ -1,0 +1,8 @@
+{
+  "outputDirectory": "build",
+  "nodeVersion": "18",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "startCommand": "npm start",
+  "environment": "production"
+}
